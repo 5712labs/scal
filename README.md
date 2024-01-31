@@ -54,8 +54,26 @@ dwenc_pass  = "SSO PASS"
 streamlit run Home.py
 ```
 * **실행 후 [http://localhost:8501](http://localhost:8501) 접속하세요**
+
+## More...
+* **[PM2 (Process Management)](https://pm2.keymetrics.io)** **무중단 서비스를 구현해보세요.**
+```python
+#PATH run_Home.py
+import subprocess
+subprocess.run(["streamlit", "run", "Home.py"])
+```
+
+```shell script
+pm2 start run_Home.py
+pm2 list
+pm2 status
+pm2 monit
+pm2 kill
+```
+
 ## Todo
 - Docker
 - ~~SSL~~
 - ~~SSO~~
 - MongoDB
+
