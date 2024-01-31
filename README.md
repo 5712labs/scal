@@ -2,7 +2,7 @@
 ## ⚙️ Installation
 * **프로젝트를 원하는 폴더에 생성하세요**
 ```shell script
-https://github.com/5712labs/scal.git
+git clone https://github.com/5712labs/scal.git
 ```
 * **[VSCode](https://code.visualstudio.com) 등의 편집기로 프로젝트 폴더를 열어주세요** 
 * **터미널을 실행하여 패키지를 설치하세요**
