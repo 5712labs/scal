@@ -1,10 +1,8 @@
-
 # Tutorials
-
 ## ⚙️ Installation
 * **프로젝트를 원하는 폴더에 생성하세요**
 ```shell script
-https://github.com/5712labs/flydw.git
+https://github.com/5712labs/scal.git
 ```
 * **[VSCode](https://code.visualstudio.com) 등의 편집기로 프로젝트 폴더를 열어주세요** 
 * **터미널을 실행하여 패키지를 설치하세요**
@@ -12,7 +10,7 @@ https://github.com/5712labs/flydw.git
 pip install -r requirements.txt
 ```
 * **사용하실 API키 파일을 생성하세요**
-```
+```toml
 #PATH /.streamlit/secrets.toml
 [필수API]
 api_dw = "챗GPT_API_KEY"
@@ -37,9 +35,7 @@ dwenc_pass  = "SSO PASS"
   "email": "dwenc@dwenc.com", 
 }
 ```
-#
 ## 🛠️ (Optional) Installation
-___
 * **SAP 연동은** [PyRFC](https://github.com/SAP/PyRFC) **에서 패키지를 별도로 설치해야합니다.**
 * **SAP 접속정보 json 파일을 생성하세요**
 ```json
@@ -53,16 +49,12 @@ ___
     "passwd" : "passwd"
 }
 ```
-#
 ## ⚡ Quickstart
----
 ```shell script
 streamlit run Home.py
 ```
 * **실행 후 [http://localhost:8501](http://localhost:8501) 접속하세요**
-#
 ## Todo
----
 - Docker
 - ~~SSL~~
 - ~~SSO~~
