@@ -32,7 +32,7 @@ dwenc_pass  = "SSO PASS"
   "orgNm": "우리팀", 
   "orgCd": "1TEAM", 
   "userId": "1234567", 
-  "email": "dwenc@dwenc.com", 
+  "email": "dwenc@dwenc.com"
 }
 ```
 ## 🛠️ (Optional) Installation
