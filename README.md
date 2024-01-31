@@ -2,7 +2,6 @@
 # Tutorials
 
 ## ⚙️ Installation
----
 * **프로젝트를 원하는 폴더에 생성하세요**
 ```shell script
 https://github.com/5712labs/flydw.git
@@ -13,7 +12,7 @@ https://github.com/5712labs/flydw.git
 pip install -r requirements.txt
 ```
 * **사용하실 API키 파일을 생성하세요**
-```json
+```
 #PATH /.streamlit/secrets.toml
 [필수API]
 api_dw = "챗GPT_API_KEY"
