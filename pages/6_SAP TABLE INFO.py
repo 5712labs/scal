@@ -1,10 +1,11 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import openai
 import json
 import pyrfc
 import pandas as pd
 from components import convert
-from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm
+from pygwalker.api.streamlit import StreamlitRenderer, init_streamlit_comm, get_streamlit_html
 
 st.set_page_config(page_title="AI DW", page_icon="🐍", layout='wide')
 
@@ -49,7 +50,7 @@ st.write(fields_df.T)
 
 st.subheader('Step 2. 필드를 선택하세요')
 fields = []
-fields_select = st.multiselect("필드를 선택하세요",
+fields_select = st.sidebar.multiselect("필드를 선택하세요",
                                 fields_df['FIELDNAME'] + ' ' + fields_df['FIELDTEXT'], 
                                 fields_df['FIELDNAME'] + ' ' + fields_df['FIELDTEXT'])
 
@@ -64,53 +65,29 @@ for field in fields_select:
     words = field.split()
     fields.append(words[0])
     # fields.append({'name': words[0], 'text': words[1]})
-st.code(fields)
+# st.code(fields)
 
-st.subheader('Step 3. 필드명을 직접 입력하실수도 있어요')
-fields_input = st.text_input('필드명', fields)
+# st.subheader('Step 3. 필드명을 직접 입력하실수도 있어요')
+fields_input = st.text_input('필드명을 직접 입력 하실 수 있어요', fields)
 if fields_input :
     # 문자열 하나에 들어 있는 텍스트를 리스트로 만들기
     text = fields_input.strip("[]")  # 대괄호([])를 제거
     fields = [item.strip(" '") for item in text.split(",")]
 
 st.code(fields)
-# st.write(fields)
-## 테이블 필드목록 가져오기
-# with pyrfc.Connection(**connect) as conn:
-#     result = conn.call('ZN_RFC_READ_TABLE', **import_param, **table_param)
-# fields_df = pd.DataFrame(result["ITAB"])
-# st.write(fields_df.T)
-
-# fields = []
-# for line in result["ITAB"]:
-#     fields.append(line['FIELDNAME'])
-# fields_select = st.multiselect("필드를 선택하세요", fields, fields)
 
 st.subheader('Step 3. 데이터가 조회되지 않을 경우 청크 수를 낮춰보세요')
 chunk_size = st.text_input('청크 사이즈', '100')
 chunks = []
-# for i in range(0, len(fields_select), int(chunk_size)):
-#     st
-#     chunks.append(fields_select[i:i+int(chunk_size)])
 for i in range(0, len(fields), int(chunk_size)):
     chunks.append(fields[i:i+int(chunk_size)])
 
 results_df = pd.DataFrame()
-
 columns = []
+
 for chunk in chunks:
     with pyrfc.Connection(**connect) as conn:
         result = conn.call("RFC_READ_TABLE", QUERY_TABLE = table_input.upper(), OPTIONS = [], FIELDS = chunk, DELIMITER = "|", ROWCOUNT=3)
-
-# ## 테이블 READ : 테이블명-ZAACFRM
-# with pyrfc.Connection(**connect) as conn:
-# # st.write(result['FIELDS'][0]['FIELDTEXT'])
-#     # fields = ['BUKRS', 'ZBYBP', 'ZISSID', 'ZARAP', 'SUPNO', 'ZSPCN', 'BUYNO', 'ZBYCN', 'HWBAS', 'HWSTE']
-#     # fields = ['MANDT', 'BUKRS', 'ZISSID', 'ZARAP', 'BUZEI', 'BUPLA', 'ZASPC', 'ZMKDT', 'ZSGDT', 'ZTRDT', 'SUPNO', 'ZSPBP', 'ZSPCN', 'ZSPNM', 'ZSPAR', 'ZSPIT', 'ZSPBT', 'ZSPRP', 'ZSPRN', 'ZSPRE', 'BUYNO', 'ZBYBP', 'ZBYCN', 'ZBYNM', 'ZBYAR', 'ZBYIT', 'ZBYBT', 'ZBYRP', 'ZBYRN', 'ZBYRE', 'ZBKNO', 'ZBKBP', 'ZBKCN', 'ZBKNM', 'ZBKAR', 'ZBKIT', 'ZBKBT', 'ZBKRE', 'HWAER', 'HWBAS', 'HWSTE', 'ZTTAT', 'ZREMK', 'ZISTP', 'ZTPDS', 'ZTPCD', 'ZAMEND', 'ZPMMC', 'DMBTR', 'DMBTR2', 'DMBTR3', 'DMBTR4', 'ZRPTP', 'ZBYRE2', 'ZCRDT', 'ZCRTM', 'ZLCUS', 'ZLCDT', 'ZLCTM', 'ZFLSQ', 'ZDELE', 'ZORG_ID']
-#     # fields = ['MANDT', 'BUKRS', 'ZISSID', 'ZARAP', 'BUZEI', 'BUPLA', 'ZASPC', 'ZMKDT']
-#     result = conn.call("RFC_READ_TABLE", QUERY_TABLE = "ZDTI_NTS_HEADER", OPTIONS = [], FIELDS = fields_select, DELIMITER = "|", ROWCOUNT=1)
-#     # result = conn.call("RFC_READ_TABLE", QUERY_TABLE = "ZDTI_NTS_HEADER", OPTIONS = [{'TEXT' : "BUKRS = '1000'"}, {'TEXT' : "AND ZCRDT = '20140529'"}], FIELDS = fields_select, DELIMITER = "|", ROWCOUNT=3) # ROWCOUNT = 10 ,ROWSKIPS=2""
-
     data = []
     for line in result["DATA"]:
         raw_data = line["WA"].strip().split("|")
@@ -123,16 +100,67 @@ for chunk in chunks:
 results_df.columns = columns
 st.write(results_df)
 
+st.subheader('Step 4. 조회 조건을 규칙에 맟추어서 입력해주세요')
+results_df = pd.DataFrame()
+columns = []
+
+options = []
+options_input = st.text_input("입력규칙은 🎯 필드명 = '입력 값' 입니다. 💁🏻‍♀️ 예) GJAHR = '2023', BUKRS = '1000', BLART= 'HE', BLDAT='20230704'", "BUKRS = '1000', GJAHR = '2024'")
+if options_input :
+    options_input = options_input.replace('=', ' = ')
+    options_input = options_input.replace('  ', ' ')
+    # options = [{'TEXT' : "GJAHR = '2023'"}]
+    # options = [{'TEXT' : "GJAHR = '2023'"}, {'TEXT' : "AND BUKRS = '1000'"}]
+    inputs = options_input.strip().split(",")
+    # st.write(inputs)
+    for idx, input in enumerate(inputs):
+        if idx == 0:
+            options.append({'TEXT' : f"{input}"})
+        else:
+            options.append({'TEXT' : f"AND {input}"})
+else:
+    st.stop()
+
+rowcount = 10
+rowcount_input = st.text_input("최대 조회 라인수를 지정해 주세요", rowcount)
+if rowcount_input :
+    rowcount = int(rowcount_input)
+
+for chunk in chunks:
+    with pyrfc.Connection(**connect) as conn:
+        result = conn.call("RFC_READ_TABLE", QUERY_TABLE = table_input.upper(), OPTIONS = options, FIELDS = chunk, DELIMITER = "|", ROWCOUNT=rowcount)
+    data = []
+    for line in result["DATA"]:
+        raw_data = line["WA"].strip().split("|")
+        data.append(raw_data)
+    for line in result["FIELDS"]:
+        columns.append(line['FIELDTEXT'] + ' ' + line['FIELDNAME'])
+    result_df = pd.DataFrame(data)
+    results_df = pd.concat([results_df, result_df], axis=1, ignore_index=True)
+
+results_df.columns = columns
+st.write(results_df)
+st.write(results_df.shape)
+
 init_streamlit_comm()
 st.subheader('Step5. 탐색적 데이터를 볼 수 있어요 by Pygwalker')
 
-renderer = StreamlitRenderer(results_df, env='Streamlit',
-                             spec="./gw_config.json",
-                             dark='light',
-                             debug=False,
-                             show_cloud_tool=True,
-                             return_html=True)
-renderer.render_explore()
+# When using `use_kernel_calc=True`, you should cache your pygwalker html, if you don't want your memory to explode
+@st.cache_resource
+def get_pyg_html(df: pd.DataFrame) -> str:
+    # When you need to publish your application, you need set `debug=False`,prevent other users to write your config file.
+    # If you want to use feature of saving chart config, set `debug=True`
+    html = get_streamlit_html(df, spec="./db/gw0.json", use_kernel_calc=True, debug=False, dark='light')
+    return html
+components.html(get_pyg_html(results_df), width=1300, height=1000, scrolling=False)
+
+# renderer = StreamlitRenderer(results_df, env='Streamlit',
+#                              spec="./db/gw_config.json",
+#                              dark='light',
+#                              debug=False,
+#                              show_cloud_tool=True,
+#                              return_html=True)
+# renderer.render_explore()
 
 st.subheader('Step 4. ChatGPT에게 물어보세요')
 
@@ -157,7 +185,7 @@ txts = '''
 #입력문
 
 '''
-txts += results_df.to_string()
+txts += results_df[:10].to_string()
 txts += '''
 \n\n
 #출력형식
@@ -173,6 +201,9 @@ txts += '''
     '''
 
 st.code(txts)
+tokens = convert.calculate_tokens(txts, st.session_state["openai_model"])
+st.caption(tokens)
+
 prompt = st.chat_input("Say something")
 
 if prompt:

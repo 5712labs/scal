@@ -93,6 +93,7 @@ def get_news_feeds(get_news_range, gpt_feed_max):
 gpt_feeds = get_news_feeds(get_news_range, gpt_feed_max)
 
 # @st.cache_data
+
 def get_tube_feed():
     youtube = build("youtube", "v3",developerKey=st.secrets["api_youtube"])
     search_response = youtube.search().list(
@@ -130,7 +131,6 @@ def get_tube_feed():
                 st.image(item['snippet']['thumbnails']['medium']['url'])
 
 get_tube_feed()
-
 
 if "nmessages" not in st.session_state:
     st.session_state.nmessages = []

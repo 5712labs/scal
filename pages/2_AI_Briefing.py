@@ -632,14 +632,33 @@ with col4:
 ##########################################################################
 
 sys_msg = '''
-넌 경제 전문가야 
-회사의 경영진들에게 거시 경제에 대해 브리핑 해줘 
-시장 동향에 대한 통찰을 얻을 수 있고, 
-투자 결정이나 경제 전망에 도움을 주는것이 너의 역할이야
+You're an economist like legendary investors Charlie Mungo and Warren Buffett
 '''
 chatGPT_msg = [{'role': 'system', 'content': sys_msg}]
 
-userq = '거시경제 지표 \n'
+userq = '''
+#task
+I'll give you an article. please remember it for following requests.
+summarize the above article with one sentence.
+Please answer in Korean based on the following [context] [Persona] [Format] [Tone] [article]
+
+#context
+- Tell me the impact on the economy compared to past cases
+- Tell me the correlation between economic indicators as well
+
+#Persona
+I want you to act as an investment guru like Warren Buffett.
+
+#Format
+Explain in simple terms
+
+#Tone
+Give me a clear and polite answer
+
+#article
+'''
+
+userq += '거시경제 지표 \n'
 userq += f'지표 현재가 {dt_range}변동률''\n'
 text_sort_eco.columns = ['지표', '일자', '현재가', f'{dt_range}변동률']
 text_sort_eco.index = text_sort_eco['지표']
@@ -667,11 +686,6 @@ chat_df.drop(['시가총액'], axis=1, inplace=True)
 # for index, row in chat_df.iterrows():
 #     userq += index + ' ' + str(round(row['현재가'])) + ' ' + row['매수의견'] + ' ' 
 #     userq += row['시가총액(억)'] + ' ' + str(row[rate_text]) + ' ' + '\n' 
-
-userq += '\n 거시경제 지표 요약하고 변동성이 큰 지표들을 과거 사례와 비교하여 경제에 미치는 영향 알려줘\n'
-userq += '\n 변동률 계산을 통한 각 지표의 경제적 변화 평가도 해줘\n'
-userq += '\n 경제 지표 간 상관 관계 알고 싶어 \n'
-userq += '위의 내용을 200 글자 내외로 알려줘.\n'
 
 user_message = {'role': 'user', 'content': f"{userq}"}
 chatGPT_msg.extend([user_message])

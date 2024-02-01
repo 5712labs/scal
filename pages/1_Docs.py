@@ -17,18 +17,19 @@ helpdown = '''
 * **파이썬 시각화 웹 애플리케이션** - [Streamlit](https://streamlit.io/) 
 * **챗지피티** - [ChatGPT](https://chat.openai.com), [OpenAI API](https://platform.openai.com/docs/introduction)
 * **마크다운** - [Markdown Live Preview](https://markdownlivepreview.com/)
-* **RAG(Retrieval Augmented Generation)**- [Chroma](https://www.trychroma.com)
+* **RAG(Retrieval Augmented Generation)**- [Chroma](https://www.trychroma.com), [Langchain](https://www.langchain.com) 
 
 #
 
 ## What's new *이런 것들을 할 수 있어요*
 ---
 * **챗GPT-4 사용해보기** `#GPT4` `#Few Shot`
-* **글로벌 실시간 뉴스 요약 및 분석** `#GPT4` `#feedparser` `#MarkDown`
 * **경제 지표 분석 및 동종사 비교** `#GPT4` `#yfinance`
+* **글로벌 실시간 뉴스 요약 및 분석** `#GPT4` `#feedparser` `#MarkDown`
 * **AI 주가 예측** _-24.01.01-_
-* **문서 임베딩(Embeddings)**
-* **SAP 데이터 분석**
+* **RAG / 문서 임베딩(Embeddings)** `#Chroma` `#Langchain`
+* **SAP 데이터 분석** `#PyRFC` `#PyGWalker`
+* **개인PC에서 직접 해볼 수 있어요**- [GitHub](https://github.com/5712labs/scal)
 
 #
 
@@ -98,21 +99,21 @@ Add 2+2:
 
 ##### 3. 마크다운 활용 기법
 ```
-# 명령문
+#명령문
 당신은 경험이 풍부한 프로젝트 관리자입니다. 
 이하의 제약조건과 입력문을 바탕으로 건설 프로젝트의 일정과 예산 관리에 관한 단계별 가이드를
 교육적이고 지원적인 어조로 상세하게 설명해주십시오.
 
-# 제약조건
+#제약조건
 - 프로젝트 초기 리소스 계획 및 할당 방법을 포함한다
 - 예상치 못한 지출에 대응하는 전략을 포함한다
 - 일정 조정 방법을 포함한다
 - 신입사원이 이해하고 실행할 수 있도록 명확하고 실질적인 팁을 제공한다
 
-# 입력문
+#입력문
 - 건설프로젝트에서 일정과 예산을 관리하는 방법에 대해 설명해주세요
 
-# 출력문
+#출력문
 
 ```
 
@@ -126,28 +127,27 @@ Add 2+2:
 
 #
 
-
-## Tables
----
-| Left columns  | Right columns |
-| ------------- |:-------------:|
-| left foo      | right foo     |
-| left bar      | right bar     |
-| left baz      | right baz     |
-
-#
-
-![This is an alt text.](https://www.daewooenc.com/Resources/Kor/images/pr/ci_sec4_img2.png "This is a sample image.")
-
-#
-
-## 행복하세요
-### 행복하세요
-#### 행복하세요
-##### 행복하세요
-###### 행복하세요
-행복하세요
-
 '''
+
+# ## Tables
+# ---
+# | Left columns  | Right columns |
+# | ------------- |:-------------:|
+# | left foo      | right foo     |
+# | left bar      | right bar     |
+# | left baz      | right baz     |
+
+# #
+
+# ![This is an alt text.](https://www.daewooenc.com/Resources/Kor/images/pr/ci_sec4_img2.png "This is a sample image.")
+
+# #
+
+# ## 행복하세요
+# ### 행복하세요
+# #### 행복하세요
+# ##### 행복하세요
+# ###### 행복하세요
+# 행복하세요
 
 st.markdown(helpdown)

@@ -87,7 +87,7 @@ with st.sidebar:
     st.session_state.current_chat = rradio.radio("최근 대화", st.session_state.chats, format_func=lambda x: x[8][5:7] +'.' + x[8][8:10] + ". " + x[1])
 
 if st.session_state.current_chat is None:
-    st.subheader("👈 새 대화를 시작해보세요")
+    st.subheader("👈 왼쪽 메뉴에서 [새 대화 시작하기]를 눌러주세요.")
     st.stop()
 
 chat_id = st.session_state.current_chat[0]
@@ -153,8 +153,6 @@ if prompt := st.chat_input("What is up?"):
     st.session_state.chat_messages.append(db.get_chat_message(message_id))
     tokens = convert.calculate_tokens(st.session_state.chat_messages, st.session_state["openai_model"])
     st.caption(tokens)
-
-
 
 st.stop()
 

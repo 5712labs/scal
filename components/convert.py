@@ -237,10 +237,8 @@ def calculate_tokens(messages, model: str) -> int:
     tokenizer = tiktoken.encoding_for_model(model)
 
     token_size = 0
-
     # if model == 'text-embedding-ada-002':
     if type(messages) == str:
-    
         pricing = 0.0001
 
         encoding_result = tokenizer.encode(messages)
@@ -249,7 +247,7 @@ def calculate_tokens(messages, model: str) -> int:
         # $0.0001 / 1K tokens        
         result = f"{token_size} 토큰을 사용하였습니다. 예상비용은 {round(token_size / 1000 * pricing, 4)}$ 입니다"
 
-    if type(messages) == list:
+    elif type(messages) == list:
         pricing = 0.03
         # gpt-3.5-turbo-1106	$0.0010 / 1K tokens	$0.0020 / 1K tokens
         # Model	Input	Output
