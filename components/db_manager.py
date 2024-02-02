@@ -1,5 +1,9 @@
+import streamlit as st
+
+
 import sqlite3
-from datetime import datetime
+import pandas as pd
+from datetime import datetime, timedelta
 
 class DBManager:
     def __init__(self, db_name='./db/chat.db'):
@@ -189,5 +193,60 @@ class DBManagerNews:
         return self.fetch_query("delete FROM news")
         # return self.fetch_query("SELECT * FROM chats WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
 
+
+class DBManagerEconomic:
+    # db_name='./db/economic.db'
+    # con = sqlite3.connect(db_name)
+    # tbl = 'eco2'
+    # product_df.to_sql(tbl, con, if_exists='replace', index=True)
+    # chk_df = pd.read_sql(f'SELECT * FROM {tbl}', con, index_col=None)
+
+    def __init__(self, db_name='./db/economic.db'):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+        # self._initialize_database()
+    
+     # 경제지표 저장
+    def save_eco(self, tbl, df):
+        df['updated_at'] = datetime.now()
+        df['symbol'] = tbl
+        df.to_sql(tbl, self.conn, if_exists='replace', index=True)
+
+    # 경제지표 불러오기
+    def get_eco(self, tbl: str, start_date: datetime, end_date: datetime):
+        st.write(start_date)
+        # st.write(type(start_date))
+
+        # st.write(end_date)
+        # start = start_date.timedelta(days=1)
+        # st.write(start)
+        # start_date = start_date.strftime("%Y-%m-%d")
+        # starts_date = start_date.strftime("%Y-%m-%d")
+        # st.write(starts_date)
+        # st.write(type(start_date))
+        # st.write(end_date)
+        
+        try:
+            st.write('get_ecotry')
+            df = pd.read_sql(f'SELECT * FROM "{tbl}" where Date = "{start_date}"', self.conn, index_col='Date')
+            # df = pd.read_sql(f'SELECT * FROM "{tbl}" where Date >= "{start_date}" and Date <= "{end_date}"', self.conn, index_col='Date')
+            st.write(df)
+        except:
+            st.write('get_eco except')
+    
+        # date = datetime.now().strftime("%Y-%m-%d %H:%M:%S-%H:%M")
+        date = datetime.now().strftime("%Y-%m-%d")
+        # return pd.read_sql(f'SELECT * FROM {tbl} where symbol = "{symbol}"', self.conn, index_col='Date')
+        # return pd.read_sql(f'SELECT * FROM "{tbl}"', self.conn, index_col='Date')
+        # return pd.read_sql(f'SELECT * FROM "{tbl}" where Date <= "2023-11-02 00:00:00-04:00"', self.conn, index_col='Date')
+        return pd.read_sql(f'SELECT * FROM "{tbl}" where Date <= "{date}"', self.conn, index_col='Date')
+    
+
+    def del_news(self):
+        # conutry = feed['conutry']
+        # published = feed['published']
+        # title = feed['title']
+        return self.fetch_query("delete FROM news")
+    
 
 

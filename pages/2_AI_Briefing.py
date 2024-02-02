@@ -7,12 +7,16 @@ import altair as alt
 import openai
 from components import convert
 import feedparser
+import sqlite3
+from components.db_manager import DBManagerEconomic
 
 st.set_page_config(page_title="AI DW", page_icon="🐍", layout='wide')
 if convert.check_auth() == False:
     st.stop()
 
 st.header(f"일하기 좋은 회사 1위 대우건설 VS 동종사 👋")
+
+db = DBManagerEconomic()
 
 clear_button = st.sidebar.button("Clear Cache", key="clear")
 if clear_button:
@@ -123,7 +127,22 @@ def load_eco_data(products):
 
         get_product_data = yf.Ticker(product['symbol'])
         product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
-        
+
+        # try: # 저장된 이력이 가져오기
+        #     product_df = db.get_eco(product['symbol'], start_date, end_date) # 경제지표 불러오기
+        #     st.write('try')
+        #     st.write(product_df)
+        # except:
+        #     get_product_data = yf.Ticker(product['symbol'])
+        #     product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
+        #     st.write('except')
+        #     st.write(product_df)
+        #     db.save_eco(product['symbol'], product_df) # 경제지표 저장
+
+        # st.write(product_df)
+        # st.write (product_df.dtypes)
+        # st.stop()
+
         # 일간변동률, 누적합계
         product_df['dpc'] = (product_df.Close/product_df.Close.shift(1)-1)*100
         product_df['cs'] = round(product_df.dpc.cumsum(), 2)
@@ -153,6 +172,9 @@ def load_eco_data(products):
     return change_eco_df, last_df
 
 change_eco_df, last_df = load_eco_data(products)
+
+
+
 
 # st.write(f""" ### 📈 주요지표 {dt_range} 변동률 """)
 base = alt.Chart(change_eco_df).encode(x='Date:T')
@@ -691,21 +713,21 @@ user_message = {'role': 'user', 'content': f"{userq}"}
 chatGPT_msg.extend([user_message])
 
 streamText = ''
-get_respense = openai.chat.completions.create(
-    model=st.session_state["openai_model"],
-    messages = chatGPT_msg,
-    # max_tokens = chatGPT_max_tokens,
-    # temperature=0,
-    stream=True,
-)
+# get_respense = openai.chat.completions.create(
+#     model=st.session_state["openai_model"],
+#     messages = chatGPT_msg,
+#     # max_tokens = chatGPT_max_tokens,
+#     # temperature=0,
+#     stream=True,
+# )
 
-for response in get_respense:
-    for chunk in response.choices:
-        if chunk.finish_reason == 'stop':
-            break
-        streamText += chunk.delta.content
-    if streamText is not None:
-        ai_stock_text.success(f""" {streamText} """)       
+# for response in get_respense:
+#     for chunk in response.choices:
+#         if chunk.finish_reason == 'stop':
+#             break
+#         streamText += chunk.delta.content
+#     if streamText is not None:
+#         ai_stock_text.success(f""" {streamText} """)       
 
 user_message = {'role': 'assistant', 'content': f"{streamText}"}
 chatGPT_msg.extend([user_message])
@@ -713,4 +735,17 @@ chatGPT_msg.extend([user_message])
 with st.expander("프롬프트 보기"):
     st.write(text_sort_eco) # 경제지표 변동률(수익률 높은 순)
     st.write(chat_df)       # 주가정보 info_stock_df
+    st.write(last_cur_df)   # 환율정보
     st.write(chatGPT_msg)   # ChatGPT API용
+
+st.write(change_eco_df)   # 환율정보
+st.write(last_df)   # 환율정보
+
+st.write(change_cur_df)   # 환율정보
+st.write(last_cur_df)   # 환율정보
+
+# change_cur_df.to_sql(table_name, con, if_exists='replace', index=False)
+
+# df = pd.read_sql(f'SELECT * FROM {table_name}', con, index_col=None)
+# st.write('==================')   # 환율정보
+# st.write(df)   # 환율정보
