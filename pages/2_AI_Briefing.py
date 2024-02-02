@@ -632,7 +632,7 @@ with col4:
 ##########################################################################
 
 sys_msg = '''
-You're an economist like legendary investors Charlie Mungo and Warren Buffett
+You're an economist like legendary investors Charlie Munger and Warren Buffett
 '''
 chatGPT_msg = [{'role': 'system', 'content': sys_msg}]
 
@@ -647,7 +647,7 @@ Please answer in Korean based on the following [context] [Persona] [Format] [Ton
 - Tell me the correlation between economic indicators as well
 
 #Persona
-I want you to act as an investment guru like Warren Buffett.
+I want you to act as an investment guru  Charlie Munger and Warren Buffett.
 
 #Format
 Explain in simple terms
