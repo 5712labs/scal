@@ -152,6 +152,8 @@ def redirect_button(url: str, text: str= None, color="#D9675F"): #FD504D
     )
 
 def get_kor_amount_string_no_change(num_amount, ndigits_keep):
+    if num_amount == 0 :
+        return '0원'
     """잔돈은 자르고 숫자를 자릿수 한글단위와 함께 리턴한다 """
     result = get_kor_amount_string(num_amount, 
                                  -(len(str(num_amount)) - ndigits_keep))
