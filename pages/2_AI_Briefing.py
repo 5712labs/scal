@@ -7,7 +7,6 @@ import altair as alt
 import openai
 from components import convert
 import feedparser
-import sqlite3
 from components.db_manager import DBManagerEconomic
 
 st.set_page_config(page_title="AI DW", page_icon="🐍", layout='wide')
@@ -18,9 +17,9 @@ st.header(f"일하기 좋은 회사 1위 대우건설 VS 동종사 👋")
 
 db = DBManagerEconomic()
 
-clear_button = st.sidebar.button("Clear Cache", key="clear")
-if clear_button:
-    st.cache_data.clear()
+# clear_button = st.sidebar.button("Clear Cache", key="clear")
+# if clear_button:
+#     st.cache_data.clear()
 
 progress_stock = st.progress(0) # 주가정보 로딩바
 status_stock = st.empty() # 주가정보 로딩바
@@ -31,12 +30,12 @@ with st.expander(f"{dt_today} by {st.session_state['openai_model']}", expanded=T
     ai_stock_text = st.empty() # 주가정보 ChatGPT 답변
     anal_news = st.container()
 
-search_date = st.sidebar.date_input("기준일자", datetime.today())
-today_button = st.sidebar.button("Today", key="today")
-if today_button:
-    search_date = datetime.today()
+# search_date = st.sidebar.date_input("기준일자", datetime.today())
+# today_button = st.sidebar.button("Today", key="today")
+# if today_button:
+#     search_date = datetime.today()
 
-dt_range = st.sidebar.selectbox("기간",['1주', '1개월', '3개월', '6개월', '1년', '3년', '10년'], index=2)
+dt_range = st.sidebar.selectbox("기간",['5일', '1개월', '3개월', '6개월', '1년', '2년', '10년'], index=2)
 if "dt_range" in st.session_state:
     if dt_range != st.session_state["dt_range"]:
         st.session_state["dt_range"] = dt_range
@@ -44,21 +43,29 @@ if "dt_range" in st.session_state:
 else:
     st.session_state["dt_range"] = dt_range
 
-end_date = search_date
-if dt_range == '1주':
-    start_date = datetime.today() - relativedelta(weeks=1)
+# 조회 기간,  1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y,1 0y, ytd, max,  오늘부터 과거까지의 기간, 생략하면 max 값이 default
+# end_date = search_date
+if dt_range == '5일':
+    # start_date = datetime.today() - relativedelta(weeks=1)
+    period = '5d'
 elif dt_range == '1개월':
-    start_date = datetime.today() - relativedelta(months=1)
+    # start_date = datetime.today() - relativedelta(months=1)
+    period = '1mo'
 elif dt_range == '3개월':
-    start_date = end_date - relativedelta(months=3)
+    # start_date = end_date - relativedelta(months=3)
+    period = '3mo'
 elif dt_range == '6개월':    
-    start_date = datetime.today() - relativedelta(months=6)
+    # start_date = datetime.today() - relativedelta(months=6)
+    period = '6mo'
 elif dt_range == '1년':    
-    start_date = datetime.today() - relativedelta(years=1)
-elif dt_range == '3년':    
-    start_date = datetime.today() - relativedelta(years=3)
+    # start_date = datetime.today() - relativedelta(years=1)
+    period = '1y'
+elif dt_range == '2년':    
+    # start_date = datetime.today() - relativedelta(years=3)
+    period = '2y'
 elif dt_range == '10년':    
-    start_date = datetime.today() - relativedelta(years=10)
+    # start_date = datetime.today() - relativedelta(years=10)
+    period = '10y'
 
 ##########################################################################
 ### 1. 주요 뉴스 ##########################################################
@@ -119,30 +126,25 @@ for product in multi_products:
     words = product.split()
     products.append({'name': words[0], 'symbol': words[1]})
 
-@st.cache_data
+# @st.cache_data
 def load_eco_data(products):
     change_eco_df = pd.DataFrame() # 변동률
     last_df = pd.DataFrame() # 변동률    
     for idx, product in enumerate(products):
-
-        get_product_data = yf.Ticker(product['symbol'])
-        product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
-
-        # try: # 저장된 이력이 가져오기
-        #     product_df = db.get_eco(product['symbol'], start_date, end_date) # 경제지표 불러오기
-        #     st.write('try')
-        #     st.write(product_df)
-        # except:
-        #     get_product_data = yf.Ticker(product['symbol'])
-        #     product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
-        #     st.write('except')
-        #     st.write(product_df)
-        #     db.save_eco(product['symbol'], product_df) # 경제지표 저장
-
-        # st.write(product_df)
-        # st.write (product_df.dtypes)
-        # st.stop()
-
+        #실시간 정보 가져오기
+        # get_product_data = yf.Ticker(product['symbol'])
+        # # product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
+        # product_df = get_product_data.history(interval='1d', period='3mo')
+        # product_df['symbol'] = product['symbol']
+        product_df = db.get_eco(product['symbol'], period) # 경제지표 불러오기
+        if len(product_df) == 0:
+            get_product_data = yf.Ticker(product['symbol'])
+            # product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
+            product_df = get_product_data.history(interval='1d', period=period)
+            # product_df.drop(['Open','High','Low','Volume','Dividends', 'Stock Splits'], axis=1, inplace=True)
+            # db.save_eco(product['symbol'], product_df) # 경제지표 저장
+            product_save_df = product_df.loc[:, ['Close']]
+            db.save_eco(product['symbol'], product_save_df, period) # 경제지표 저장
         # 일간변동률, 누적합계
         product_df['dpc'] = (product_df.Close/product_df.Close.shift(1)-1)*100
         product_df['cs'] = round(product_df.dpc.cumsum(), 2)
@@ -151,7 +153,8 @@ def load_eco_data(products):
             {
                 'Date2': product_df.index,
                 'symbol': product['name'],
-                'Close': round(product_df.Close, 2),
+                # 'Close': round(product_df.Close, 2),
+                'Close': round(product_df['Close'], 2).iloc[0],
                 'rate': product_df.cs,
                 }
         )
@@ -173,8 +176,24 @@ def load_eco_data(products):
 
 change_eco_df, last_df = load_eco_data(products)
 
+df = change_eco_df
+min_date = pd.to_datetime(df['Date'].min())
+earliest_dates = df.groupby('symbol')['Date'].min().reset_index() # 각 symbol별로 가장 이른 Date 찾기
+new_rows = pd.DataFrame(columns=change_eco_df.columns) # Preparing DataFrame to collect new rows
+for _, row in earliest_dates.iterrows():
+    symbol_data = df[df['symbol'] == row['symbol']]
+    earliest_row = symbol_data[symbol_data['Date'] == row['Date']].iloc[0].copy()
+    current_date = pd.to_datetime(earliest_row['Date']) - relativedelta(days=1)
 
+    while current_date > min_date:
+        earliest_row['Date'] = current_date
+        # new_rows = new_rows.append(earliest_row, ignore_index=True)
+        new_rows = pd.concat([new_rows, pd.DataFrame([earliest_row])], ignore_index=True)
+        current_date -= relativedelta(days=1)
 
+change_eco_df = pd.concat([change_eco_df, new_rows], axis=0)
+change_eco_df.sort_values(by=['symbol', 'Date'], inplace=True)
+change_eco_df = change_eco_df.fillna(0)
 
 # st.write(f""" ### 📈 주요지표 {dt_range} 변동률 """)
 base = alt.Chart(change_eco_df).encode(x='Date:T')
@@ -325,22 +344,33 @@ for currency in multi_currencies:
     words = currency.split()
     currencies.append({'name': words[0], 'symbol': words[1]})
 
-@st.cache_data
+# @st.cache_data
 def load_cur_data(currencies):
     change_cur_df = pd.DataFrame() # 변동률
     last_cur_df = pd.DataFrame() # 변동률
 
     for idx, currency in enumerate(currencies):
+        # #실시간 정보 가져오기
+        # get_currency_data = yf.Ticker(currency['symbol'])
+        # # currency_df = get_currency_data.history(period='1d', start=start_date, end=end_date)
+        # currency_df = get_currency_data.history(interval='1d', period='3mo')
+        currency_df = db.get_eco(currency['symbol'], period) # 환율정보 불러오기
+        if len(currency_df) == 0:
+            get_currency_data = yf.Ticker(currency['symbol'])
+            # product_df = get_product_data.history(period='1d', start=start_date, end=end_date)
+            currency_df = get_currency_data.history(interval='1d', period=period)
+            # currency_df.drop(['Open','High','Low','Volume','Dividends', 'Stock Splits'], axis=1, inplace=True)
+            # db.save_eco(currency['symbol'], currency_df) # 환율정보 저장
+            currency_save_df = currency_df.loc[:, ['Close']]
+            db.save_eco(currency['symbol'], currency_save_df, period) # 환율정보 저장
 
-        get_currency_data = yf.Ticker(currency['symbol'])
-        currency_df = get_currency_data.history(period='1d', start=start_date, end=end_date)
         # 일간변동률, 누적합계
         currency_df['dpc'] = (currency_df.Close/currency_df.Close.shift(1)-1)*100
         currency_df['cs'] = round(currency_df.dpc.cumsum(), 2)
         change2_df = pd.DataFrame(
             {
                 'symbol': currency['name'],
-                'Close': round(currency_df.Close, 2),
+                'Close': round(currency_df['Close'], 2).iloc[0],
                 'rate': currency_df.cs,
                 }
         )
@@ -464,21 +494,29 @@ for stock in multi_stocks:
     words = stock.split()
     stocks.append({'name': words[0], 'symbol': words[1]})
 
-@st.cache_data
+# @st.cache_data
 def load_stock_data(stocks):
     change_stocks_df = pd.DataFrame() # 주가 변동률
-    info_stock_df = pd.DataFrame() # 주가 변동률
+    info_stocks_df = pd.DataFrame() # 주가 변동률
 
     for i, stock in enumerate(stocks):
-        get_stock_data = yf.Ticker(stock['symbol'])
-        stock_df = get_stock_data.history(period='1d', start=start_date, end=end_date)
+        # get_stock_data = yf.Ticker(stock['symbol'])
+        # # stock_df = get_stock_data.history(period='1d', start=start_date, end=end_date)
+        # stock_df = get_stock_data.history(interval='1d', period='3mo')
+
+        stock_df = db.get_eco(stock['symbol'], period) # 주가 불러오기
+        if len(stock_df) == 0:
+            get_stock_data = yf.Ticker(stock['symbol'])
+            # stock_df = get_stock_data.history(period='1d', start=start_date, end=end_date)
+            stock_df = get_stock_data.history(interval='1d', period=period)
+            stock_save_df = stock_df.loc[:, ['Close']]
+            db.save_eco(stock['symbol'], stock_save_df, period) # 주가 저장
         # 일간변동률, 누적합계
         stock_df['dpc'] = (stock_df.Close/stock_df.Close.shift(1)-1)*100
         stock_df['cs'] = round(stock_df.dpc.cumsum(), 2)
         change2_df = pd.DataFrame(
             {
                 'symbol': stock['name'],
-                # 'Close': round(stock_df.Close, 2)[0],
                 'Close': round(stock_df['Close'], 2).iloc[0],
                 'rate': stock_df.cs,
                 }
@@ -487,23 +525,9 @@ def load_stock_data(stocks):
         change2_df.reset_index(drop=False, inplace=True)
         change_stocks_df = pd.concat([change_stocks_df, change2_df])
 
-        info_stock_df[stock['name']] = [
-            get_stock_data.info['marketCap'],
-            convert.get_kor_amount_string_no_change(get_stock_data.info['marketCap'], 3),
-            get_stock_data.info['recommendationKey'],
-            get_stock_data.info['currentPrice'],
-            # convert.get_kor_amount_string_no_change(get_stock_data.info['currentPrice'], 1),
-            get_stock_data.info['totalCash'], # 총현금액
-            convert.get_kor_amount_string_no_change(get_stock_data.info['totalCash'], 3),
-            get_stock_data.info['totalDebt'], # 총부채액
-            get_stock_data.info['totalRevenue'], # 총매출액
-            get_stock_data.info.get('grossProfits', 0), # 매출총이익
-            # convert.get_kor_amount_string_no_change(get_stock_data.info.get('grossProfits', '')),
-            get_stock_data.info['operatingMargins'] * 100, # 영업이익률
-            round(change_stocks_df[-1:].iloc[0]['rate'], 1), # 변동률
-            '']
-        rate_text = f'{dt_range}변동률'
-        info_stock_df.index = [
+        # 회사상세 정보 가져오기
+        indexs = [
+            '종목명',
             '시가총액', 
             '시가총액(억)', 
             '매수의견', 
@@ -516,13 +540,46 @@ def load_stock_data(stocks):
             # '매출총이익(억)', 
             '영업이익률',
         #    '순이익률',
-            rate_text,
+            f'{dt_range}변동률',
             '비고'
             ]
 
-    return change_stocks_df, info_stock_df
+        info_stock_df = db.get_eco(stock['symbol'], 'info') # 주가 불러오기
+        if len(info_stock_df) == 0:
+            get_stock_data = yf.Ticker(stock['symbol'])
+            info_stock_list = [
+                stock['name'],
+                get_stock_data.info.get('marketCap', 0),
+                convert.get_kor_amount_string_no_change(get_stock_data.info.get('marketCap', 0), 3),
+                get_stock_data.info.get('recommendationKey', ''),
+                get_stock_data.info.get('currentPrice', 0),
+                get_stock_data.info.get('totalCash', 0), # 총현금액
+                convert.get_kor_amount_string_no_change(get_stock_data.info.get('totalCash', 0), 3),
+                get_stock_data.info.get('totalDebt', 0), # 총부채액
+                get_stock_data.info.get('totalRevenue', 0), # 총매출액
+                get_stock_data.info.get('grossProfits', 0), # 매출총이익
+                get_stock_data.info.get('operatingMargins', 0) * 100, # 영업이익률
+                round(change_stocks_df[-1:].iloc[0]['rate'], 1), # 변동률
+                ''
+            ]
+            info_stock_df = pd.DataFrame()
+            # info_stock_df[stock['name']] = info_stock_list # 주가 변동률
+            info_stock_df['infos'] = info_stock_list # 주가 변동률
+            info_stock_df['title'] = indexs
+            now_ymdh = datetime.today().strftime("%Y-%m-%d %H:%M:%S %Z")
+            info_stock_df['Date'] = now_ymdh
+            info_stock_df.set_index('Date', inplace=True)
+            db.save_eco(stock['symbol'], info_stock_df, 'info') # 주가 저장
+
+        # info_stock_list = info_stock_df.infos.to_list()[1:]
+        info_stock_list = info_stock_df.infos.to_list()
+        info_stocks_df[stock['name']] = info_stock_list
+        info_stocks_df.index = indexs
+
+    return change_stocks_df, info_stocks_df
 
 change_stocks_df, info_stock_df = load_stock_data(stocks)
+
 status_stock.empty()
 progress_stock.empty()
 
@@ -603,7 +660,8 @@ labels2_stock = alt.Chart(text_data3).mark_text(
 ##########################################################################
 # st.write(""" ### 🎙️ 시가총액 """)
 # cap_df = info_stock_df.T
-cap_df = info_stock_df.iloc[[0, 1]].T #시가총액, 시가총액(억)
+# cap_df = info_stock_df.iloc[[0, 1]].T #시가총액, 시가총액(억)
+cap_df = info_stock_df.iloc[[1, 2]].T #시가총액, 시가총액(억)
 cap_df.reset_index(drop=False, inplace=True)
 cap_df.rename(columns={'index': '종목명'}, inplace=True)
 bar_chart = alt.Chart(cap_df, title='').mark_bar().encode(
@@ -713,21 +771,21 @@ user_message = {'role': 'user', 'content': f"{userq}"}
 chatGPT_msg.extend([user_message])
 
 streamText = ''
-# get_respense = openai.chat.completions.create(
-#     model=st.session_state["openai_model"],
-#     messages = chatGPT_msg,
-#     # max_tokens = chatGPT_max_tokens,
-#     # temperature=0,
-#     stream=True,
-# )
+get_respense = openai.chat.completions.create(
+    model=st.session_state["openai_model"],
+    messages = chatGPT_msg,
+    # max_tokens = chatGPT_max_tokens,
+    # temperature=0,
+    stream=True,
+)
 
-# for response in get_respense:
-#     for chunk in response.choices:
-#         if chunk.finish_reason == 'stop':
-#             break
-#         streamText += chunk.delta.content
-#     if streamText is not None:
-#         ai_stock_text.success(f""" {streamText} """)       
+for response in get_respense:
+    for chunk in response.choices:
+        if chunk.finish_reason == 'stop':
+            break
+        streamText += chunk.delta.content
+    if streamText is not None:
+        ai_stock_text.success(f""" {streamText} """)       
 
 user_message = {'role': 'assistant', 'content': f"{streamText}"}
 chatGPT_msg.extend([user_message])
@@ -738,11 +796,11 @@ with st.expander("프롬프트 보기"):
     st.write(last_cur_df)   # 환율정보
     st.write(chatGPT_msg)   # ChatGPT API용
 
-st.write(change_eco_df)   # 환율정보
-st.write(last_df)   # 환율정보
+# st.write(change_eco_df)   # 환율정보
+# st.write(last_df)   # 환율정보
 
-st.write(change_cur_df)   # 환율정보
-st.write(last_cur_df)   # 환율정보
+# st.write(change_cur_df)   # 환율정보
+# st.write(last_cur_df)   # 환율정보
 
 # change_cur_df.to_sql(table_name, con, if_exists='replace', index=False)
 

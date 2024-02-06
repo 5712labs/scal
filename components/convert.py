@@ -153,10 +153,13 @@ def redirect_button(url: str, text: str= None, color="#D9675F"): #FD504D
 
 def get_kor_amount_string_no_change(num_amount, ndigits_keep):
     """잔돈은 자르고 숫자를 자릿수 한글단위와 함께 리턴한다 """
-    return get_kor_amount_string(num_amount, 
+    result = get_kor_amount_string(num_amount, 
                                  -(len(str(num_amount)) - ndigits_keep))
+    return result
 
 def get_kor_amount_string(num_amount, ndigits_round=0, str_suffix='원'):
+    if num_amount == 0 :
+        return '0원'
     """숫자를 자릿수 한글단위와 함께 리턴한다 """
     assert isinstance(num_amount, int) and isinstance(ndigits_round, int)
     assert num_amount >= 1, '최소 1원 이상 입력되어야 합니다'
