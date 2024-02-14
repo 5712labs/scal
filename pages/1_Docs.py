@@ -26,7 +26,7 @@ helpdown = '''
 * **챗GPT-4 사용해보기** `#GPT4` `#Few Shot`
 * **경제 지표 분석 및 동종사 비교** `#GPT4` `#yfinance`
 * **글로벌 실시간 뉴스 요약 및 분석** `#GPT4` `#feedparser` `#MarkDown`
-* **AI 주가 예측** _-24.01.01-_
+* **AI 주가 예측** `#prophet`
 * **RAG / 문서 임베딩(Embeddings)** `#Chroma` `#Langchain`
 * **SAP 데이터 분석** `#PyRFC` `#PyGWalker`
 * **개인PC에서 직접 해볼 수 있어요**- [GitHub](https://github.com/5712labs/scal)
@@ -118,15 +118,10 @@ Add 2+2:
 ```
 
 #####
-
-##### 3. 멀티 페르소나 기법
-
-#####
-
-##### 4. ReAct 기법
-
-#
-
+## 이렇게도 활용해요
+---
+* **[CHATGPT에게] GPT와 관련된 초대장 이미지 만들어줘**
+* **[PHOTOSHOP에서] 모니터 사이즈 크게해줘**
 '''
 
 # ## Tables
@@ -139,8 +134,6 @@ Add 2+2:
 
 # #
 
-# ![This is an alt text.](https://www.daewooenc.com/Resources/Kor/images/pr/ci_sec4_img2.png "This is a sample image.")
-
 # #
 
 # ## 행복하세요
@@ -151,3 +144,9 @@ Add 2+2:
 # 행복하세요
 
 st.markdown(helpdown)
+
+cols = st.columns(2)
+with cols[0]:
+    st.image('./images/240215_p01.webp')
+with cols[1]:
+    st.image('./images/240215_p02.webp')

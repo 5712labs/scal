@@ -7,6 +7,7 @@ import altair as alt
 import openai
 from components import convert
 import feedparser
+from googleapiclient.discovery import build
 from components.db_manager import DBManagerEconomic
 
 st.set_page_config(page_title="AI DW", page_icon="🐍", layout='wide')
@@ -29,6 +30,7 @@ dt_today = datetime.today().strftime('%Y년 %m월 %d일 %H시%M분')
 with st.expander(f"{dt_today} by {st.session_state['openai_model']}", expanded=True):
     ai_stock_text = st.empty() # 주가정보 ChatGPT 답변
     anal_news = st.container()
+    anal_tube = st.container()
 
 # search_date = st.sidebar.date_input("기준일자", datetime.today())
 # today_button = st.sidebar.button("Today", key="today")
@@ -87,6 +89,44 @@ for idx, feed in enumerate(sorted_feeds[:10]):
     colsnum = ( idx % 5 )
     with cols[colsnum]:
         st.link_button(feed.title + f' {pub_date}', feed.link)
+
+def get_tube_feed():
+    youtube = build("youtube", "v3",developerKey=st.secrets["api_youtube"])
+    search_response = youtube.search().list(
+    q = '경제',
+    order = "relevance",
+    part = "snippet",
+    maxResults = 5
+    ).execute()
+
+    def info_to_dict(videoId, title, description, url):
+        result = {
+            "videoId": videoId,
+            "title": title,
+            "description": description,
+            "url": url
+        }
+        return result
+
+    result_json = {}
+    idx =0
+    for item in search_response['items']:
+        if item['id']['kind'] == 'youtube#video':
+            result_json[idx] = info_to_dict(item['id']['videoId'], item['snippet']['title'], item['snippet']['description'], item['snippet']['thumbnails']['medium']['url'])
+            idx += 1
+    # st.write(result_json)
+    
+    gpt_feed_col = 5
+    cols = anal_tube.columns(gpt_feed_col)
+    for idx, item in enumerate(search_response['items']):
+        if item['id']['kind'] == 'youtube#video':
+            # result_json[idx] = info_to_dict(item['id']['videoId'], item['snippet']['title'], item['snippet']['description'], item['snippet']['thumbnails']['medium']['url'])
+            # idx += 1
+            colsnum = ( idx % gpt_feed_col )
+            with cols[colsnum]:
+                st.image(item['snippet']['thumbnails']['medium']['url'])
+
+get_tube_feed()
 
 ##########################################################################
 ### 1. 주요 경제지표 ######################################################

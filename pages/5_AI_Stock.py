@@ -19,6 +19,23 @@ if convert.check_auth() == False:
 
 st.title("AI 주가 예측")
 
+# stocks_list = stock.get_market_ticker_list()
+# st.write(stocks_list)
+
+# st.stop()
+
+import requests
+
+# 원격 서버에 요청하기
+# krx_url = 'https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13'
+# response = requests.get(krx_url,  verify=False)
+# 응답 바디를 읽기
+# excel_data = response.content
+# # 파일로 저장하기
+# st.write(response)
+# with open('output.xlsx', 'wb') as f:
+#     f.write(excel_data)
+
 clear_button = st.sidebar.button("Clear Cache", key="clear", type="secondary")
 if clear_button:
     st.cache_data.clear()
