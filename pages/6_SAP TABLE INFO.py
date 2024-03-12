@@ -24,7 +24,7 @@ table_input = st.text_input('대소문자는 관계가 없어요. STANDARD나 CB
 if table_input == '':
     st.stop()
 
-f = open("./db/sap_connect_dcd.json")
+f = open("./db/sap_connect_dcp.json")
 connect = json.load(f)
 
 table_DDTEXT = ''

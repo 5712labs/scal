@@ -83,7 +83,7 @@ class DBManager:
     # 대화 목록 가져오기
     def get_chats(self, user_id):
         # return self.fetch_query("SELECT * FROM chats ORDER BY updated_at DESC")
-        return self.fetch_query("SELECT * FROM chats WHERE user_id = ? ORDER BY updated_at DESC LIMIT 10", (user_id,))
+        return self.fetch_query("SELECT * FROM chats WHERE user_id = ? ORDER BY updated_at DESC LIMIT 5", (user_id,))
         # return self.fetch_query("SELECT * FROM chats WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
 
     # 아이디로 대화 내용 가져오기
