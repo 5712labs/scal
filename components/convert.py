@@ -7,6 +7,7 @@ import tiktoken
 import requests
 import base64
 import json
+from streamlit_cookies_controller import CookieController, RemoveEmptyElementContainer
 
 def check_auth():
 
@@ -33,6 +34,19 @@ def check_auth():
         """, unsafe_allow_html=True)
     
     stChatFloatingInputContainer()    
+        
+    controller = CookieController()
+    cookies = controller.getAll()
+    if 'bjs_anonymous_id' in cookies:
+        cookie = controller.get('bjs_anonymous_id')
+        # st.write(cookie)
+        st.session_state.user_info.append(cookie) # 사용자 정보
+        openai.api_key = st.secrets["api_dw"]
+        st.session_state["openai_model"] = 'gpt-4-1106-preview'
+        return True
+    # else: 
+    #     st.write('bjs_anonymous_id 없음')
+    #     # controller.remove('bjs_anonymous_id')
 
     if "user_info" not in st.session_state:
         st.session_state.user_info = []
@@ -43,6 +57,7 @@ def check_auth():
     try:
         user = open("./db/local_user.json")
         user_info = json.load(user)
+        controller.set('bjs_anonymous_id', user_info)
         st.session_state.user_info.append(user_info) # 사용자 정보
         st.session_state["openai_model"] = 'gpt-4-1106-preview'
         # st.session_state["openai_model"] = 'gpt-3.5-turbo-1106'
@@ -82,7 +97,9 @@ def check_auth():
                 response = requests.post(api_url, headers=headers, json=data)
                 # 성공적인 응답 처리
                 if response.status_code == 200:
-                    st.session_state.user_info.append(response.json()) # 사용자 정보
+                    user_info = response.json()
+                    controller.set('bjs_anonymous_id', user_info)
+                    st.session_state.user_info.append(user_info) # 사용자 정보
                     openai.api_key = st.secrets["api_dw"]
                     st.session_state["openai_model"] = 'gpt-4-1106-preview'
                     return True

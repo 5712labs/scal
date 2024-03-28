@@ -30,3 +30,4 @@ PublicDataReader
 deepl
 langchain_community
 google-auth-oauthlib
+streamlit-cookies-controller

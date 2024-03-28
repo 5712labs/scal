@@ -12,6 +12,12 @@ if convert.check_auth() == False:
 st.title("AI RIS 🌎")
 
 
+
+
+
+
+
+
 # 조회 대상 목록 (사업자등록번호 리스트)
 b_no = st.text_input('사업자등록번호를 -를 제외한 숫자만 입력해주세요', '1048158180')
 api = pdr.Nts(st.secrets['api_public'])

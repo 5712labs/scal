@@ -28,9 +28,7 @@ dateYmd = datetime.now().strftime("%Y년%m월%d일")
 with st.sidebar:
     if st.button("새 대화 시작하기", key="new_chat", type="primary"):
         # 연속 새 대화 생성 방지
-        # if len(st.session_state.chats) == 0 or st.session_state.chats[0][1][:11] != dateYmd:
         if len(st.session_state.chats) == 0 or st.session_state.chats[0][1] != 'New Chat':
-            # chat_title = datetime.now().strftime("%Y년%m월%d일 %H시%M분%S초")
             chat_title = 'New Chat'
             chat_id = db.save_chat(userInfo, chat_title)
             st.session_state.current_chat = db.get_chat(chat_id)
@@ -39,6 +37,7 @@ with st.sidebar:
     rradio = st.empty()
     st.session_state.current_chat = rradio.radio("최근 대화", st.session_state.chats, format_func=lambda x: x[8][5:7] +'.' + x[8][8:10] + ". " + x[1])
     # 모델 선택하기
+    # with st.popover("GPT 모델 선택하기"):
     llms = st.radio(
         "LLM 모델",
         ["gpt-4-1106-preview", "solar-1-mini-chat", "gemma:2b"], #"gemma:7b", "mixtral:8x7b", "ob-llama2-13b", "solar:10.7b", "mistral"
@@ -47,8 +46,6 @@ with st.sidebar:
         client = OpenAI(
             api_key=st.secrets["api_dw"]
         )
-        # = f"gpt-4-1106-preview"
-        # f"https://api.openai.com/v1"
     elif llms == 'solar-1-mini-chat':
         client = OpenAI(
             api_key = st.secrets['api_solar'],
@@ -111,8 +108,6 @@ else:
     # )
     # st.image(img_response.data[0].url)
 
-
-
 if st.session_state.current_chat is None:
     st.subheader("👈 왼쪽 메뉴에서 [새 대화 시작하기]를 눌러주세요.")
     st.stop()
@@ -120,14 +115,6 @@ if st.session_state.current_chat is None:
 chat_id = st.session_state.current_chat[0]
 chat_title = st.session_state.current_chat[1]
 st.session_state.chat_messages = db.get_chat_messages(chat_id)
-
-# header_container = st.container()
-# with header_container:
-#     new_chat_title = st.text_input("", value=chat_title)
-#     if st.button("대화명 변경하기"):
-#         db.update_chat_title(chat_id, new_chat_title)
-#         st.session_state.current_chat = db.get_chat_userId(chat_id)
-#         st.session_state.chats = db.get_chats_userId(userInfo['userId'])
 
 for chat_message in st.session_state.chat_messages:
     chat_message_id = chat_message[0]
@@ -145,8 +132,11 @@ for chat_message in st.session_state.chat_messages:
             #     data = file[3]
             #     file_name = file
 
+# if 'multiquery_button' not in st.session_state:
+#     if st.session_state.multiquery_button:
+#         st.write('5712')
+
 if prompt := st.chat_input("What is up?"):
-    # if chat_title[:11] == dateYmd:
     if chat_title[:11] == 'New Chat':
         db.update_chat_title(chat_id, prompt[:20])
         st.session_state.current_chat = db.get_chat(chat_id)
@@ -170,10 +160,6 @@ if prompt := st.chat_input("What is up?"):
             messages = messages,
             stream=True,
         ):
-            # for chunk in response.choices:
-            #     if chunk.finish_reason == 'stop':
-            #         break
-            #     full_response += chunk.delta.content
             for chunk in response.choices:
                 if chunk.finish_reason == 'stop':
                     break
@@ -185,8 +171,48 @@ if prompt := st.chat_input("What is up?"):
     # tokens = convert.calculate_tokens(st.session_state.chat_messages, st.session_state["openai_model"])
     # st.caption(tokens)
 
-with st.expander('') :
-    st.session_state.chat_messages
+########################################################################
+### 연관 질문
+########################################################################
+    # # message="""You are an AI language model assistant. Your task is 
+    # # to generate 3 different versions of the given user 
+    # # question to retrieve relevant documents from a vector  database. 
+    # # By generating multiple perspectives on the user question, 
+    # # your goal is to help the user overcome some of the limitations 
+    # # of distance-based similarity search. Provide these alternative 
+    # # questions separated by newlines in korean. Original question: {prompt}"""
+    # messages = []
+    # message="""You are an AI language model assistant. Your task is 
+    # to generate 3 different versions of the given user 
+    # question to retrieve relevant documents from a vector  database. 
+    # By generating multiple perspectives on the user question, 
+    # your goal is to help the user overcome some of the limitations 
+    # of distance-based similarity search. Provide these alternative 
+    # questions separated by newlines in korean. Original question: {prompt}"""
+    # messages.append({"role": 'user', "content": message})
+    # message_placeholder = st.empty()
+    # full_response = ""    
+    # for response in client.chat.completions.create(
+    #     model=st.session_state["openai_model"],
+    #     messages = messages,
+    #     stream=True,
+    # ):
+    #     for chunk in response.choices:
+    #         if chunk.finish_reason == 'stop':
+    #             break
+    #         full_response += chunk.delta.content
+    #     message_placeholder.markdown(full_response + "▌")
+    # # if st.button(full_response, type="secondary", key='message_multiquery'):
+    # #     st.write('ㅑㅞㅕㅅ')
+    # # st.session_state.multi_query = ''
+    # multiquery_button = st.button(full_response, type="secondary", key='multiquery_button')
+    # # if multiquery_button:
+    #     # st.session_state.multi_query.append(multiquery_button)
+    #     # st.session_state["multi_query"] = full_response
+ 
+# with st.expander('') :
+#     st.session_state.multiquery_button
+    # st.session_state.chat_messages
 
 st.stop()
 
